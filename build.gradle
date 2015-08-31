@@ -1,0 +1,53 @@
+plugins {
+    id "net.minecraftforge.gradle.forge" version "2.0.1"
+}
+
+project.ext.buildnumber = ""
+if (System.getenv().BUILD_NUMBER) project.buildnumber = "-" + System.getenv().BUILD_NUMBER
+
+ext.configFile = file 'build.properties'
+configFile.withReader {
+    def prop = new Properties()
+    prop.load(it)
+    project.ext.config = new ConfigSlurper().parse prop
+}
+
+version = config.mod_version + project.buildnumber
+group = config.mod_group
+archivesBaseName = config.mod_name
+
+sourceCompatibility = config.java_version
+targetCompatibility = config.java_version
+
+minecraft {
+    version = config.minecraft_version + "-" + config.forge_version
+    runDir = "minecraft"
+    mappings = config.minecraft_mappings
+    replace "${version}", project.version
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'ilexiconn'
+        url = 'http://maven.ilexiconn.net/'
+    }
+}
+
+dependencies {
+    compile "net.ilexiconn.llibrary:LLibrary:${config.llibrary_version}-${config.minecraft_version}:dev"
+}
+
+processResources {
+    inputs.property "version", project.version
+    inputs.property "mcversion", project.minecraft.version
+
+    from (sourceSets.main.resources.srcDirs) {
+        include "mcmod.info"
+        expand "version":project.version, "mcversion":project.minecraft.version
+    }
+        
+    from (sourceSets.main.resources.srcDirs) {
+        exclude "mcmod.info"
+    }
+}
